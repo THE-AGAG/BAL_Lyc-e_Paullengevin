@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin – Oscars du BAL</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --gold: #c9a84c;
+      --gold-light: #f0d080;
+      --gold-dark: #8b6914;
+      --bg-dark: #1a0308;
+      --bg-darker: #0a0005;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg-dark);
+      color: var(--gold-light);
+      font-family: 'Cinzel', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .form-container {
+      background: var(--bg-darker);
+      padding: 30px;
+      border: 1px solid var(--gold);
+      border-radius: 8px;
+      width: 100%;
+      max-width: 450px;
+      box-shadow: 0 4px 20px rgba(201, 168, 76, 0.3);
+    }
+
+    .form-container h2 {
+      text-align: center;
+      color: var(--gold);
+      margin-bottom: 20px;
+      font-size: 22px;
+      letter-spacing: 2px;
+    }
+
+    .form-group { margin-bottom: 15px; }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 13px;
+      color: rgba(240, 208, 128, 0.8);
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 12px;
+      background: #222;
+      border: 1px solid var(--gold-dark);
+      border-radius: 4px;
+      color: white;
+      font-family: inherit;
+      font-size: 14px;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--gold);
+      box-shadow: 0 0 0 2px rgba(201, 168, 76, 0.2);
+    }
+
+    textarea { min-height: 100px; resize: vertical; }
+
+    .file-input-label {
+      display: block;
+      background: rgba(201, 168, 76, 0.1);
+      border: 1px dashed var(--gold-dark);
+      padding: 15px;
+      text-align: center;
+      cursor: pointer;
+      border-radius: 4px;
+      margin-top: 5px;
+      transition: all 0.2s;
+    }
+    .file-input-label:hover {
+      background: rgba(201, 168, 76, 0.2);
+      border-color: var(--gold);
+    }
+
+    #photo { display: none; }
+
+    .file-name {
+      margin-top: 8px;
+      font-size: 12px;
+      color: rgba(240, 208, 128, 0.6);
+      text-align: center;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+      border: none;
+      border-radius: 4px;
+      color: var(--bg-dark);
+      font-weight: 900;
+      font-family: 'Cinzel', serif;
+      font-size: 14px;
+      letter-spacing: 2px;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-top: 10px;
+    }
+    button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(201, 168, 76, 0.4);
+    }
+    button:disabled {
+      background: #555;
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+
+    #msg {
+      margin-top: 15px;
+      text-align: center;
+      font-size: 13px;
+      min-height: 20px;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 15px;
+    }
+    .success { color: #4caf50; }
+    .error   { color: #ff6b6b; }
+    .loading { color: var(--gold-light); font-style: italic; }
+
+    @media (max-width: 480px) {
+      .form-container { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="form-container">
+  <h2>✨ Inscrire un Candidat</h2>
+
+  <div class="form-group">
+    <label for="name">Nom et Prénom *</label>
+    <input type="text" id="name" placeholder="Ex : Jean Dupont" required>
+  </div>
+
+  <div class="form-group">
+    <label for="category">Catégorie *</label>
+    <select id="category" required>
+      <option value="" disabled selected>Sélectionnez…</option>
+      <option value="actrice">Meilleure Actrice</option>
+      <option value="acteur">Meilleur Acteur</option>
+      <option value="meilleur_danseur">Meilleur Danseur</option>
+      <option value="meilleure_danseuse">Meilleure Danseuse</option>
+      <option value="meilleur_costume">Meilleur Costume</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label for="description">Description (optionnelle)</label>
+    <textarea id="description" placeholder="Ex : Élève de Terminale S, passionnée de théâtre…"></textarea>
+  </div>
+
+  <div class="form-group">
+    <label>Photo du candidat *</label>
+    <label for="photo" class="file-input-label">
+      📁 Choisir une image (JPG/PNG, max 2 Mo)
+    </label>
+    <input type="file" id="photo" accept="image/jpeg,image/png" required>
+    <div class="file-name" id="file-name">Aucun fichier sélectionné</div>
+  </div>
+
+  <button id="btn-submit" onclick="registerCandidate()">
+    Inscrire aux Oscars du BAL
+  </button>
+  <p id="msg"></p>
+</div>
+
+<script>
+  // ─── Configuration Supabase ───────────────────────────────────────────────
+  const SUPABASE_URL = 'https://bqjroqsoylnbtanhwmxg.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJxanJvcXNveWxuYnRhbmh3bXhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1OTczOTQsImV4cCI6MjA5MDE3MzM5NH0.MIisLUmgMXmTtzH79i7j472zL3MRAbUASa4e51O_C3A';
+  // ⚠️  Remplace la clé ci-dessus par ta vraie anon key du projet pwhpzugyisaplmogshxk
+
+  const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  // ─── Mot de passe admin simple ────────────────────────────────────────────
+  (function checkPassword() {
+    const PASSWORD = 'oscars2026'; // Change ce mot de passe !
+    const saisie = prompt('🔒 Mot de passe admin :');
+    if (saisie !== PASSWORD) {
+      document.body.innerHTML = '<p style="color:#ff6b6b;text-align:center;margin-top:40px;font-family:Cinzel">❌ Accès refusé</p>';
+      throw new Error('Accès refusé');
+    }
+  })();
+
+  // ─── Affichage nom de fichier ─────────────────────────────────────────────
+  document.getElementById('photo').addEventListener('change', function (e) {
+    const fileName = e.target.files[0]?.name || 'Aucun fichier sélectionné';
+    document.getElementById('file-name').textContent = fileName;
+  });
+
+  // ─── Inscription candidat ─────────────────────────────────────────────────
+  async function registerCandidate() {
+    const btn  = document.getElementById('btn-submit');
+    const msg  = document.getElementById('msg');
+    const name        = document.getElementById('name').value.trim();
+    const category    = document.getElementById('category').value;
+    const description = document.getElementById('description').value.trim();
+    const photoFile   = document.getElementById('photo').files[0];
+
+    // Validation
+    if (!name)      return showMsg('❌ Le nom est obligatoire !', 'error');
+    if (!category)  return showMsg('❌ La catégorie est obligatoire !', 'error');
+    if (!photoFile) return showMsg('❌ La photo est obligatoire !', 'error');
+    if (photoFile.size > 2 * 1024 * 1024)
+      return showMsg('❌ L\'image doit faire moins de 2 Mo !', 'error');
+    if (!['image/jpeg', 'image/png'].includes(photoFile.type))
+      return showMsg('❌ Seuls les fichiers JPG/PNG sont acceptés !', 'error');
+
+    btn.disabled = true;
+    showMsg('🔄 Envoi en cours…', 'loading');
+
+    try {
+      // 1. Nom de fichier unique
+      const fileExt  = photoFile.name.split('.').pop();
+      const fileName = `${Date.now()}_${name.replace(/\s+/g, '_')}.${fileExt}`;
+
+      // 2. Upload dans le bucket "candidates"
+      const { error: uploadError } = await _supabase
+        .storage.from('candidates').upload(fileName, photoFile);
+      if (uploadError) throw uploadError;
+
+      // 3. URL publique
+      const { data: publicUrlData } = _supabase
+        .storage.from('candidates').getPublicUrl(fileName);
+
+      // 4. Insertion en base (created_at géré automatiquement par Supabase)
+      const { error: dbError } = await _supabase.from('nominees').insert([{
+        full_name:   name,
+        category:    category,
+        description: description,
+        photo_url:   publicUrlData.publicUrl,
+      }]);
+      if (dbError) throw dbError;
+
+      showMsg('✅ Candidat inscrit avec succès !', 'success');
+      resetForm();
+
+    } catch (err) {
+      console.error('Erreur complète :', err);
+      showMsg('❌ Erreur : ' + (err.message || 'Problème de connexion à Supabase'), 'error');
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  function showMsg(text, type) {
+    const msg = document.getElementById('msg');
+    msg.textContent = text;
+    msg.className = type;
+  }
+
+  function resetForm() {
+    document.getElementById('name').value = '';
+    document.getElementById('category').value = '';
+    document.getElementById('description').value = '';
+    document.getElementById('photo').value = '';
+    document.getElementById('file-name').textContent = 'Aucun fichier sélectionné';
+  }
+</script>
+</body>
+</html>

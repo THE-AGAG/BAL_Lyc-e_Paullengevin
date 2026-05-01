@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Les Oscars du BAL – Vote</title>
+  <link rel="icon" href="data:,">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="style_final.css">
+</head>
+<body>
+
+  <noscript>
+    <p style="color:#ff6b6b;text-align:center;margin-top:40px;font-family:sans-serif">
+      Ce site nécessite JavaScript pour fonctionner.
+    </p>
+  </noscript>
+
+  <header class="header">
+    <h1>LES OSCARS DU BAL</h1>
+    <p>VOTE 2026</p>
+  </header>
+
+  <!-- Pilules de statut — une par catégorie -->
+  <div class="vote-status">
+    <div class="status-pill" id="status-actrice">ACTRICE —</div>
+    <div class="status-pill" id="status-acteur">ACTEUR —</div>
+  </div>
+
+  <div class="stack" id="stack">
+    <!-- Chargement -->
+    <p class="loading-msg">✦ Chargement des candidats… ✦</p>
+  </div>
+
+  <div class="controls">
+    <button class="btn-swipe" onclick="navigate(-1)" aria-label="Précédent">←</button>
+    <div class="dots" id="dots"></div>
+    <button class="btn-swipe" onclick="navigate(1)"  aria-label="Suivant">→</button>
+  </div>
+
+  <aside class="leaderboard">
+    <h2>🏆 Classement Live</h2>
+    <div class="leaderboard-header">
+      <span>CANDIDAT</span>
+      <span>VOTES</span>
+    </div>
+    <ol id="leaderboard-results"></ol>
+    <p class="last-updated" id="last-updated"></p>
+  </aside>
+
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <script src="script_vote.js"></script>
+</body>
+</html>
